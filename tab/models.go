@@ -1,8 +1,11 @@
 package tabs
 
 import (
-	"github.com/fusco2k/go-request/tables"
 	"time"
+
+	"github.com/fusco2k/go-request/orders"
+
+	"github.com/fusco2k/go-request/tables"
 
 	"github.com/google/uuid"
 
@@ -14,5 +17,5 @@ type Tab struct {
 	name       uuid.UUID
 	timeOpened time.Time
 	table      tables.Table
-	orders []Order
+	orders     []orders.Order
 }
