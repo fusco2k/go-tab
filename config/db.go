@@ -14,6 +14,10 @@ type Env struct {
 	CL *mongo.Collection
 }
 
+type Session struct {
+	CL *mongo.Collection
+}
+
 //NewSession creates a new mongo session returning a pointer to the asked database collection
 func NewSession(uri string) *mongo.Client {
 	//create a context for comunicate with mongodb
