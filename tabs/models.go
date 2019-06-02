@@ -10,9 +10,9 @@ import (
 
 //Tab relational struct
 type Tab struct {
-	ID         primitive.ObjectID
-	Number     int8
-	TimeOpened time.Time
-	Table      int8
-	Orders     []orders.Order
+	ID         primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Number     int               `json:"number,omitempty" bson:"number,omitempty"`
+	TimeOpened time.Time          `json:"timeopened,omitempty" bson:"timeopened,omitempty"`
+	Table      int8               `json:"table,omitempty" bson:"table,omitempty"`
+	Orders     []orders.Order     `json:"orders,omitempty" bson:"orders,omitempty"`
 }
