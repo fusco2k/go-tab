@@ -10,11 +10,10 @@ import (
 
 	"github.com/fusco2k/go-tab/tabs"
 	"github.com/google/uuid"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/fusco2k/go-tab/config"
 	"github.com/fusco2k/go-tab/sessions"
-	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -36,18 +35,20 @@ func newSession(ss *config.Session) httprouter.Handle {
 		//parse the tab
 		tab, err := strconv.Atoi(ps.ByName("tab"))
 		if err != nil {
-			log.Printf("Error converting the string: %s/n", err)
+			log.Printf("Error converting the string: %s\n", err)
 		}
 		session := &sessions.Session{}
 		//check if the tab has an opened session, case not, create a new one
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
-		err = ss.CL.FindOne(ctx, bson.M{"tab": bson.M{"number": tab}}).Decode(&session)
+		err = ss.CL.FindOne(ctx, bson.M{"tab.number": 15}).Decode(&session)
 		if err != nil && err.Error() == "mongo: no documents in result" {
 			log.Printf("Creating a new session")
+			fmt.Println(tab)
 			createSession(w, r, tab, session, ss)
-		} else {
-			log.Printf("Error decoding the new session cursor: %s/n", err)
+		}
+		if err != nil {
+			log.Printf("Error decoding the new session cursor: %s\n", err)
 			cancel()
 		}
 		//print the session for debug
@@ -56,11 +57,9 @@ func newSession(ss *config.Session) httprouter.Handle {
 }
 func createSession(w http.ResponseWriter, r *http.Request, tab int, session *sessions.Session, ss *config.Session) {
 	//configure session
-	session.ID = primitive.NewObjectID()
 	session.SecretToken = uuid.New()
 	session.Tab = tabs.Tab{
-		ID:         primitive.NewObjectID(),
-		Number:     12,
+		Number:     tab,
 		TimeOpened: time.Now(),
 		Table:      15,
 	}
@@ -68,8 +67,10 @@ func createSession(w http.ResponseWriter, r *http.Request, tab int, session *ses
 	//check if the cookie exists,and if so, clear it and set a new one
 	if cookie, err := r.Cookie("SessionID"); cookie != nil {
 		http.SetCookie(w, &http.Cookie{Name: "SessionID", MaxAge: -1})
+		log.Printf("Clearing cookie: %s\n", err)
+
 	} else if err != nil {
-		log.Printf("Could not set cookie: %s/n", err)
+		log.Printf("Empty cookie: %s\n", err)
 	}
 	http.SetCookie(w, &http.Cookie{Name: "SessionID", Value: session.SecretToken.String()})
 	//write to the db
