@@ -12,7 +12,7 @@ import (
 type Tab struct {
 	ID         primitive.ObjectID
 	Number     int8
-	timeOpened time.Time
-	table      int8
-	orders     []orders.Order
+	TimeOpened time.Time
+	Table      int8
+	Orders     []orders.Order
 }
