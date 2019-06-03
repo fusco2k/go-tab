@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"strconv"
@@ -19,18 +20,31 @@ import (
 )
 
 func main() {
-	router := httprouter.New()
 	//dependency config
 	cl := config.NewSession("mongodb://localhost:27017")
 	defer cl.Disconnect(context.Background())
 	ss := &config.Session{CL: cl.Database("go-tab").Collection("session")}
-
-	router.GET("/api/rest/:tab/new", newSession(ss))
+	//template manager
+	tpl := config.TplManager()
+	//new httprouter
+	router := httprouter.New()
+	//routes
+	router.GET("/api/rest/open", openSS(tpl))
+	router.POST("/api/rest/new", newSS(ss))
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
-func newSession(ss *config.Session) httprouter.Handle {
+func openSS(tpl *template.Template) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		err := tpl.ExecuteTemplate(w, "open.gohtml", nil)
+		if err != nil {
+			log.Printf("Couldn't execute open.gohtml: %s", err)
+		}
+	}
+}
+
+func newSS(ss *config.Session) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		//parse the tab
 		tab, err := strconv.Atoi(ps.ByName("tab"))
@@ -55,13 +69,14 @@ func newSession(ss *config.Session) httprouter.Handle {
 		fmt.Println(session)
 	}
 }
+
 func createSession(w http.ResponseWriter, r *http.Request, tab int, session *sessions.Session, ss *config.Session) {
 	//configure session
 	session.SecretToken = uuid.New()
 	session.Tab = tabs.Tab{
 		Number:     tab,
 		TimeOpened: time.Now(),
-		Table:      15,
+		Table:      10,
 	}
 	session.Time = 1
 	//check if the cookie exists,and if so, clear it and set a new one
