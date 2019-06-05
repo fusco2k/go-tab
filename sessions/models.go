@@ -34,12 +34,12 @@ func CheckSS(w http.ResponseWriter, r *http.Request, ss *Session) {
 		//todo deal if the tab reports an opened session and the client already has a valid and opened session. Check why it has an opened session, that should not happen
 	case true:
 		r.Method = "GET"
-		http.Redirect(w, r, "/api/rest/"+strconv.Itoa(ss.Tab.Number), http.StatusFound)
+		http.Redirect(w, r, "/api/rest/tabs/"+strconv.Itoa(ss.Tab.Number), http.StatusFound)
 	}
 }
 
 //CreateSS configure and creates a session with given parameters
-func CreateSS(w http.ResponseWriter, r *http.Request, tab int, ss *Session, sEnv *config.Session) {
+func CreateSS(w http.ResponseWriter, r *http.Request, tab int, ss *Session, sEnv *config.Data) {
 	//configure session
 	ss.SecretToken = uuid.New()
 	ss.Tab = tabs.Tab{
@@ -59,10 +59,10 @@ func CreateSS(w http.ResponseWriter, r *http.Request, tab int, ss *Session, sEnv
 	//write to the db
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	result, err := sEnv.CL.InsertOne(ctx, ss)
+	_, err := sEnv.CL.InsertOne(ctx, ss)
 	if err != nil {
 		log.Printf("Could not insert session on db: %s", err)
 	}
-	//print the ObjID inserted
-	fmt.Println(result.InsertedID)
+	r.Method = "GET"
+	http.Redirect(w, r, "/api/rest/tabs/"+strconv.Itoa(ss.Tab.Number), http.StatusFound)
 }

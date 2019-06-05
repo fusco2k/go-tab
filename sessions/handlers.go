@@ -24,7 +24,7 @@ func NewSS(tpl *template.Template) httprouter.Handle {
 }
 
 //FindSS looks for the tab on any active session
-func FindSS(sEnv *config.Session) httprouter.Handle {
+func FindSS(sEnv *config.Data) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		//parse the tab
 		tab, err := strconv.Atoi(r.FormValue("tab"))
