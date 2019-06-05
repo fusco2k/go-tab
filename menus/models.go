@@ -1,27 +1,27 @@
-package items
+package menus
 
 import (
 	"context"
 	"log"
 	"time"
 
+	"github.com/fusco2k/go-tab/items"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-//Item describe a basic menu item struct
-type Item struct {
-	ID      primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Name    string             `json:"name,omitempty" bson:"name,omitempty"`
-	Price   int8               `json:"price,omitempty" bson:"price,omitempty"`
-	Visible bool               `json:"visible,omitempty" bson:"visible,omitempty"`
+//Menu represents a menu struct
+type Menu struct {
+	ID       primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Category string             `json:"category,omitempty" bson:"category,omitempty"`
+	Items    []items.Item       `json:"items,omitempty" bson:"items,omitempty"`
 }
 
-//AllData returns a slice of Items
-func AllData(cl *mongo.Collection) []Item {
+//AllData returns a slice of Users
+func AllData(cl *mongo.Collection) []Menu {
 	//initialize a slice model to get data
-	var Items []Item
+	var Menus []Menu
 	//creates a context with a timeout of 3 seconds
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	//cancel de ctx, all jobs done
@@ -35,50 +35,50 @@ func AllData(cl *mongo.Collection) []Item {
 	defer cursor.Close(ctx)
 	// loop throght the cursor decoding the data and append it to the slice model
 	for cursor.Next(ctx) {
-		//initialize a model item to receive data from the cursor
-		item := Item{}
-		//decode cursor data into item
-		err = cursor.Decode(&item)
+		//initialize a model user to receive data from the cursor
+		menu := Menu{}
+		//decode cursor data into user
+		err = cursor.Decode(&menu)
 		if err != nil {
 			cancel()
 			log.Fatal(err)
 		}
-		//append the results into the slice of items
-		Items = append(Items, item)
+		//append the results into the slice of menus
+		Menus = append(Menus, menu)
 	}
 	if err := cursor.Err(); err != nil {
 		log.Fatal(err)
 	}
 	//returns the slice model
-	return Items
+	return Menus
 }
 
 //OneData returns the item from a ObjectID
-func OneData(cl *mongo.Collection, id primitive.ObjectID) Item {
+func OneData(cl *mongo.Collection, id primitive.ObjectID) Menu {
 	//initialize the model to decoded the mongo data
-	item := Item{}
+	menu := Menu{}
 	//creates a context with a timeout of 3 seconds
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	//cancel de ctx, all jobs done
 	defer cancel()
 	//gets the item related to id and decode to the pointed item model
-	err := cl.FindOne(ctx, bson.M{"_id": id}).Decode(&item)
+	err := cl.FindOne(ctx, bson.M{"_id": id}).Decode(&menu)
 	if err != nil {
 		cancel()
-		return item
+		return menu
 	}
 	//returns the item
-	return item
+	return menu
 }
 
 //CreateData creates a item and returns the create item
-func CreateData(cl *mongo.Collection, i Item) primitive.ObjectID {
+func CreateData(cl *mongo.Collection, m Menu) primitive.ObjectID {
 	//creates a context with a timeout of 3 seconds
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	//cancel de ctx, all jobs done
 	defer cancel()
 	//creates a new item on the collection
-	res, err := cl.InsertOne(ctx, i)
+	res, err := cl.InsertOne(ctx, m)
 	if err != nil {
 		cancel()
 	}
@@ -104,13 +104,13 @@ func DeleteData(cl *mongo.Collection, id primitive.ObjectID) int64 {
 }
 
 //ModifyData replace the item given on pos 0 from slice by the item on pos 1
-func ModifyData(cl *mongo.Collection, i []Item) primitive.ObjectID {
+func ModifyData(cl *mongo.Collection, m []Menu) primitive.ObjectID {
 	//creates a context with a timeout of 3 seconds
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	//cancel de ctx, all jobs done
 	defer cancel()
 	//Replace the data on the collection
-	res, err := cl.ReplaceOne(ctx, bson.M{"_id": i[0].ID}, i[1])
+	res, err := cl.ReplaceOne(ctx, bson.M{"_id": m[0].ID}, m[1])
 	if err != nil {
 		cancel()
 	}
