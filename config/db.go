@@ -9,12 +9,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-//Env struct points to a mongo collection
-type Env struct {
-	CL *mongo.Collection
-}
-
-type Session struct {
+//Data struct points to a mongo collection
+type Data struct {
 	CL *mongo.Collection
 }
 
